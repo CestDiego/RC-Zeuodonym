@@ -1,27 +1,43 @@
 import 'styles/extensions.scss';
 import nameToPseudo from './data';
 
+import _ from 'lodash';
 
 let senderNameElements = document.getElementsByClassName('sender_name');
 
-const regexp = RegExp('\\b(' + Object.keys (nameToPseudo).join ('|') + ')\\b', 'g');
+const nameRegexp = RegExp('\\b(' + Object.keys(nameToPseudo).join('|') + ')\\b', 'g');
+const pseudoRegexp = RegExp('\\b(' + Object.keys(nameToPseudo).map((key) => nameToPseudo[key]).join ('|') + ')\\b', 'g');
+
+function getRealName(name) {
+  return _.filter(Object.keys(nameToPseudo),
+                  (key) => nameToPseudo[key] === name)[0];
+}
 
 function hookStuff() {
   for (let i = 0; senderNameElements[i]; i++) {
     const fullName = senderNameElements[i].innerHTML;
-    const temp = senderNameElements[i].innerHTML;
     const showPseudonym = function () {
-      senderNameElements[i].innerHTML = fullName.replace(regexp,
-                                                         (_, word) =>
-                                                         nameToPseudo[word]);
+      const leName = senderNameElements[i].innerHTML;
+
+      senderNameElements[i].innerHTML = leName.replace(nameRegexp,
+                                                       (_, word) =>
+                                                       nameToPseudo[word]);
+      senderNameElements[i].parentNode.parentNode.removeEventListener('mouseover',
+                                                                      showPseudonym);
     };
     const showRealName = function () {
-      senderNameElements[i].innerHTML = temp;
-    };
+      const leName = senderNameElements[i].innerHTML;
+
+      senderNameElements[i].innerHTML = leName.replace(pseudoRegexp,
+                                                       (_, word) =>
+                                                       getRealName(word));
+      senderNameElements[i].parentNode.parentNode.removeEventListener('mouseout',
+                                                                      showRealName);
+ };
 
     senderNameElements[i].setAttribute("data-name", fullName);
-    senderNameElements[i].parentNode.parentNode.addEventListener("mouseover", showPseudonym);
-    senderNameElements[i].parentNode.parentNode.addEventListener("mouseout", showRealName);
+    senderNameElements[i].parentNode.parentNode.parentNode.addEventListener("mouseover", showPseudonym);
+    senderNameElements[i].parentNode.parentNode.parentNode.addEventListener("mouseout", showRealName);
   }
 }
 
@@ -43,7 +59,7 @@ Object.keys(nameToPseudo).map((name) => {
 const observer = new MutationObserver(function(mutations) {
   mutations.forEach(function(mutation) {
     console.log(mutation.type);
-    console.log(mutation.target)
+    console.log(mutation.target);
 
     // if (mutation.attributeName === "class") {
     //   console.log("MutationObserver class changed to", newVal);

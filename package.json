@@ -1,5 +1,5 @@
 {
-  "name": "RC Zeudonyms",
+  "name": "RC_Zeudonyms",
   "version": "1.0.0",
   "description": "RC Zeudonimz",
   "main": "server/index.js",
@@ -36,6 +36,7 @@
   "dependencies": {
     "bootstrap": "git://github.com/twbs/bootstrap.git#v4-dev",
     "history": "^1.12.6",
+    "lodash": "^3.10.1",
     "react-router": "^1.0.0-rc3",
     "redux-router": "^1.0.0-beta3"
   }
