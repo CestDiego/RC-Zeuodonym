@@ -44,55 +44,48 @@ let obs = new MutationObserver((mutations) => {
   });
 });
 
-// obs["obs"].observe(document.getElementById("zhome"),
-//             {
-//               childList: true,
-//               subtree: false,
-//               attributes: false,
-//               characterData: false
-//             });
-
-obs["obs"].observe(document.getElementById("zhome"),
+obs.observe(document.getElementById("zhome"),
                    {
                      childList: true,
                      subtree: false,
                      attributes: false,
                      characterData: false
                    });
+/* Zulip seems to be doing something really weird which is that it won't trigger
+ * mutation events for `zfilt` and does some weird stuff narrowing and
+ * unnarrowing streams */
+let filteredElement = document.getElementById('zfilt');
+let filteredSenderNames = filteredElement.getElementsByClassName('sender_name');
 
-let sidebarChange = () => {
-  Object.keys(Pseudonyms).map((name) => {
-    if (name !== "None") {
-      const cssQuery        = ''.concat('a[data-name*="', name, '"]');
-      const sideListElement = document.querySelector(cssQuery);
+for (let j = 0; j < filteredSenderNames.length; ++j) {
+  filteredSenderNames[j].innerHTML = getPseudo(filteredSenderNames[j].innerHTML);
+}
 
-      if (sideListElement) {
-        sideListElement.innerHTML = Pseudonyms[name];
-      }
-    }
-  });
+const observer = new MutationObserver(
+  (mutations) =>
+    mutations.map((mutation) => {
+      let nodes = mutation.addedNodes;
 
-  const observer = new MutationObserver(
-    (mutations) =>
-      mutations.forEach((mutation) => {
-        if (mutation.type === "childList") {
-          console.log(mutation);
+      for (let i = 0; i < nodes.length; ++i) {
+        let item = nodes[i];
+        let className  = item.className;
+
+        if (className && className.indexOf('user_sidebar_entry') !== -1) {
+          let userName = item.querySelector('a');
+
+          userName.innerHTML = getPseudo(userName.innerHTML);
         }
+      }
+    })
+);
 
-        // if (mutation.attributeName === "class") {
-        //   console.log("MutationObserver class changed to", newVal);
-        // } else if (mutation.attributeName === "id") {
-        //   console.log("MutationObserver id changed to", newVal);
-        // }
-      })
-  );
-
-  // configuration of the observer:
-  const config = { attributes: true, childList: true, subtree: true, characterData: true };
-
-  // pass in the target node, as well as the observer options
-  observer.observe(document.getElementById("zhome"), config);
-};
+observer.observe(document.getElementById("user_presences"),
+                 {
+                   attributes:    false,
+                   childList:     true,
+                   subtree:       false,
+                   characterData: false
+                 });
 
 // This is to get the json data from pseudo.recurse.com (Thanks Sher Minn)
 // var pseudo = document.getElementsByClassName('pseudonym');
