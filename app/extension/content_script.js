@@ -22,7 +22,7 @@ let getPseudo = (fullName) => {
   return fullName;
 };
 
-let obs = new MutationObserver((mutations) => {
+let chatListObserver = new MutationObserver((mutations) => {
   mutations.map((mutation) => {
     // console.log(mutation);
     let nodes = mutation.addedNodes;
@@ -44,13 +44,13 @@ let obs = new MutationObserver((mutations) => {
   });
 });
 
-obs.observe(document.getElementById("zhome"),
-                   {
-                     childList: true,
-                     subtree: false,
-                     attributes: false,
-                     characterData: false
-                   });
+chatListObserver.observe(document.getElementById("zhome"),
+                         {
+                           childList: true,
+                           subtree: false,
+                           attributes: false,
+                           characterData: false
+                         });
 /* Zulip seems to be doing something really weird which is that it won't trigger
  * mutation events for `zfilt` and does some weird stuff narrowing and
  * unnarrowing streams */
@@ -61,7 +61,7 @@ for (let j = 0; j < filteredSenderNames.length; ++j) {
   filteredSenderNames[j].innerHTML = getPseudo(filteredSenderNames[j].innerHTML);
 }
 
-const observer = new MutationObserver(
+const sidebarObserver = new MutationObserver(
   (mutations) =>
     mutations.map((mutation) => {
       let nodes = mutation.addedNodes;
@@ -79,13 +79,13 @@ const observer = new MutationObserver(
     })
 );
 
-observer.observe(document.getElementById("user_presences"),
-                 {
-                   attributes:    false,
-                   childList:     true,
-                   subtree:       false,
-                   characterData: false
-                 });
+sidebarObserver.observe(document.getElementById("user_presences"),
+                        {
+                          attributes:    false,
+                          childList:     true,
+                          subtree:       false,
+                          characterData: false
+                        });
 
 // This is to get the json data from pseudo.recurse.com (Thanks Sher Minn)
 // var pseudo = document.getElementsByClassName('pseudonym');
