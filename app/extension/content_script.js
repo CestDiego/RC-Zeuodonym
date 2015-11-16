@@ -1,79 +1,102 @@
 import 'styles/extensions.scss';
-import nameToPseudo from './data';
+import Pseudonyms from './data';
 
 import _ from 'lodash';
 
 let senderNameElements = document.getElementsByClassName('sender_name');
 
-const nameRegexp = RegExp('\\b(' + Object.keys(nameToPseudo).join('|') + ')\\b', 'g');
-const pseudoRegexp = RegExp('\\b(' + Object.keys(nameToPseudo).map((key) => nameToPseudo[key]).join ('|') + ')\\b', 'g');
+const nameRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).join('|') + ')\\b', 'g');
+const pseudoRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).map((name) =>
+                                                                 Pseudonyms[name]).join('|') + ')\\b', 'g');
 
-function getRealName(name) {
-  return _.filter(Object.keys(nameToPseudo),
-                  (key) => nameToPseudo[key] === name)[0];
-}
+let getRealName = (pseudo) => pseudo.replace(
+  pseudoRegexp,
+  (match, pseudonym) => _.filter(Object.keys(Pseudonyms),
+                            (name) => Pseudonyms[name] === pseudonym)[0]
+);
 
-function hookStuff() {
-  for (let i = 0; senderNameElements[i]; i++) {
-    const fullName = senderNameElements[i].innerHTML;
-    const showPseudonym = function () {
-      const leName = senderNameElements[i].innerHTML;
+let getPseudo = (fullName) => {
+  let pseudo = fullName.replace(nameRegexp, (match, fullName) => Pseudonyms[fullName]);
 
-      senderNameElements[i].innerHTML = leName.replace(nameRegexp,
-                                                       (_, word) =>
-                                                       nameToPseudo[word]);
-      senderNameElements[i].parentNode.parentNode.removeEventListener('mouseover',
-                                                                      showPseudonym);
-    };
-    const showRealName = function () {
-      const leName = senderNameElements[i].innerHTML;
-
-      senderNameElements[i].innerHTML = leName.replace(pseudoRegexp,
-                                                       (_, word) =>
-                                                       getRealName(word));
-      senderNameElements[i].parentNode.parentNode.removeEventListener('mouseout',
-                                                                      showRealName);
- };
-
-    senderNameElements[i].setAttribute("data-name", fullName);
-    senderNameElements[i].parentNode.parentNode.parentNode.addEventListener("mouseover", showPseudonym);
-    senderNameElements[i].parentNode.parentNode.parentNode.addEventListener("mouseout", showRealName);
+  if (pseudo && pseudo !== "None") {
+    return pseudo;
   }
+  return fullName;
+};
+
+function hookStuff(elem) {
+  // const fullName = elem.innerHTML;
+
+  let showPseudonym = () => {
+    /* Shows pseudonym of the item at point, if there is no suitable pseudonym,
+     * it leaves it unchanged
+     */
+    elem.innerHTML = getPseudo(elem.innerHTML);
+  };
+  let showRealName = () => {
+    /* Shows real name of the item at point by checking the values of the
+     * Pseudonyms dictionary, if there is no suitable name, it leaves it
+     * unchanged (which means that current thing is not a pseudonym)
+     */
+    elem.innerHTML = getRealName(elem.innerHTML);
+  };
+
+  // elem.setAttribute("data-name", fullName);
+  elem.parentNode.parentNode.parentNode.addEventListener("mouseover", showPseudonym);
+  elem.parentNode.parentNode.parentNode.addEventListener("mouseout", showRealName);
+
 }
 
-hookStuff();
-window.setInterval(hookStuff, 1000);
+let lelel = () => {
+  senderNameElements = document.getElementsByClassName('sender_name');
+  console.log(senderNameElements);
+  for (let i = 0; i < senderNameElements.length; i++) {
+    console.log("heh");
+    senderNameElements[i].innerHTML = getPseudo(senderNameElements[i].innerHTML);
+  }
+};
 
-Object.keys(nameToPseudo).map((name) => {
-  if (name !== "None") {
-    const cssQuery        = ''.concat('a[data-name*="', name, '"]');
-    const sideListElement = document.querySelector(cssQuery);
+window.setTimeout(lelel, 500);
 
-    if (sideListElement) {
-      sideListElement.innerHTML = nameToPseudo[name];
+for (let i = 0; i < senderNameElements.length; i++) {
+  console.log("heh");
+  // senderNameElements[i].innerHTML = getPseudo(senderNameElements[i].innerHTML);
+}
+// window.setInterval(lelel, 2000);
+
+let sidebarChange = () => {
+  Object.keys(Pseudonyms).map((name) => {
+    if (name !== "None") {
+      const cssQuery        = ''.concat('a[data-name*="', name, '"]');
+      const sideListElement = document.querySelector(cssQuery);
+
+      if (sideListElement) {
+        sideListElement.innerHTML = Pseudonyms[name];
+      }
     }
-  }
-});
-
-
-const observer = new MutationObserver(function(mutations) {
-  mutations.forEach(function(mutation) {
-    console.log(mutation.type);
-    console.log(mutation.target);
-
-    // if (mutation.attributeName === "class") {
-    //   console.log("MutationObserver class changed to", newVal);
-    // } else if (mutation.attributeName === "id") {
-    //   console.log("MutationObserver id changed to", newVal);
-    // }
   });
-});
 
-// configuration of the observer:
-const config = { attributes: true, childList: true, characterData: true };
+  const observer = new MutationObserver(
+    (mutations) =>
+      mutations.forEach((mutation) => {
+        if (mutation.type === "childList") {
+          console.log(mutation);
+        }
 
-// pass in the target node, as well as the observer options
-observer.observe(document, config);
+        // if (mutation.attributeName === "class") {
+        //   console.log("MutationObserver class changed to", newVal);
+        // } else if (mutation.attributeName === "id") {
+        //   console.log("MutationObserver id changed to", newVal);
+        // }
+      })
+  );
+
+  // configuration of the observer:
+  const config = { attributes: true, childList: true, subtree: true, characterData: true };
+
+  // pass in the target node, as well as the observer options
+  observer.observe(document.getElementById("zhome"), config);
+};
 
 // This is to get the json data from pseudo.recurse.com (Thanks Sher Minn)
 // var pseudo = document.getElementsByClassName('pseudonym');
@@ -83,3 +106,4 @@ observer.observe(document, config);
 //   var pseudonym = pseudo[i].innerHTML;
 //   leJSON[realName] = pseudonym;
 // }
+// JSON.stringify(leJSON)
