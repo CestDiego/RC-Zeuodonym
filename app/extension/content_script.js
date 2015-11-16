@@ -3,8 +3,6 @@ import Pseudonyms from './data';
 
 import _ from 'lodash';
 
-let senderNameElements = document.getElementsByClassName('sender_name');
-
 const nameRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).join('|') + ')\\b', 'g');
 const pseudoRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).map((name) =>
                                                                  Pseudonyms[name]).join('|') + ')\\b', 'g');
@@ -24,47 +22,7 @@ let getPseudo = (fullName) => {
   return fullName;
 };
 
-function hookStuff(elem) {
-  // const fullName = elem.innerHTML;
-
-  let showPseudonym = () => {
-    /* Shows pseudonym of the item at point, if there is no suitable pseudonym,
-     * it leaves it unchanged
-     */
-    elem.innerHTML = getPseudo(elem.innerHTML);
-  };
-  let showRealName = () => {
-    /* Shows real name of the item at point by checking the values of the
-     * Pseudonyms dictionary, if there is no suitable name, it leaves it
-     * unchanged (which means that current thing is not a pseudonym)
-     */
-    elem.innerHTML = getRealName(elem.innerHTML);
-  };
-
-  // elem.setAttribute("data-name", fullName);
-  elem.parentNode.parentNode.parentNode.addEventListener("mouseover", showPseudonym);
-  elem.parentNode.parentNode.parentNode.addEventListener("mouseout", showRealName);
-
-}
-
-let lelel = () => {
-  senderNameElements = document.getElementsByClassName('sender_name');
-  for (let i = 0; i < senderNameElements.length; i++) {
-    console.log("heh");
-    senderNameElements[i].innerHTML = getPseudo(senderNameElements[i].innerHTML);
-  }
-};
-
-// window.setTimeout(lelel, 500);
-
-let obs = {};
-let disconnectObs = () => {
-  obs["obs"].disconnect();
-};
-
-console.log("I'm here!");
-
-obs["obs"] = new MutationObserver((mutations) => {
+let obs = new MutationObserver((mutations) => {
   mutations.map((mutation) => {
     // console.log(mutation);
     let nodes = mutation.addedNodes;
