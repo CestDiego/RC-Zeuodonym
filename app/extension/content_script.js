@@ -10,7 +10,7 @@ const pseudoRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).map((name) =>
 let getRealName = (pseudo) => pseudo.replace(
   pseudoRegexp,
   (match, pseudonym) => _.filter(Object.keys(Pseudonyms),
-                            (name) => Pseudonyms[name] === pseudonym)[0]
+                                (name) => Pseudonyms[name] === pseudonym)[0]
 );
 
 let getPseudo = (fullName) => {
