@@ -49,20 +49,58 @@ function hookStuff(elem) {
 
 let lelel = () => {
   senderNameElements = document.getElementsByClassName('sender_name');
-  console.log(senderNameElements);
   for (let i = 0; i < senderNameElements.length; i++) {
     console.log("heh");
     senderNameElements[i].innerHTML = getPseudo(senderNameElements[i].innerHTML);
   }
 };
 
-window.setTimeout(lelel, 500);
+// window.setTimeout(lelel, 500);
 
-for (let i = 0; i < senderNameElements.length; i++) {
-  console.log("heh");
-  // senderNameElements[i].innerHTML = getPseudo(senderNameElements[i].innerHTML);
-}
-// window.setInterval(lelel, 2000);
+let obs = {};
+let disconnectObs = () => {
+  obs["obs"].disconnect();
+};
+
+console.log("I'm here!");
+
+obs["obs"] = new MutationObserver((mutations) => {
+  mutations.map((mutation) => {
+    // console.log(mutation);
+    let nodes = mutation.addedNodes;
+
+    for (let i = 0; i < nodes.length; ++i) {
+      let item = nodes[i];
+      let id = item.id;
+
+      if (id && id.indexOf('message_group') !== -1) {
+        let nameElements = item.getElementsByClassName('sender_name');
+        let messageLabel = item.querySelector('.message_label_clickable');
+
+        for (let j = 0; j < nameElements.length; ++j) {
+          nameElements[j].innerHTML = getPseudo(nameElements[j].innerHTML);
+        }
+        messageLabel.innerHTML = getPseudo(messageLabel.innerHTML);
+      }
+    }
+  });
+});
+
+// obs["obs"].observe(document.getElementById("zhome"),
+//             {
+//               childList: true,
+//               subtree: false,
+//               attributes: false,
+//               characterData: false
+//             });
+
+obs["obs"].observe(document.getElementById("zhome"),
+                   {
+                     childList: true,
+                     subtree: false,
+                     attributes: false,
+                     characterData: false
+                   });
 
 let sidebarChange = () => {
   Object.keys(Pseudonyms).map((name) => {
