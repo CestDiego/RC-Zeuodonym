@@ -6,13 +6,11 @@ import _ from 'lodash';
 const nameRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).join('|') + ')\\b', 'g');
 const pseudoRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).map((name) =>
                                                                  Pseudonyms[name]).join('|') + ')\\b', 'g');
-
 let getRealName = (pseudo) => pseudo.replace(
   pseudoRegexp,
   (match, pseudonym) => _.filter(Object.keys(Pseudonyms),
                                 (name) => Pseudonyms[name] === pseudonym)[0]
 );
-
 let getPseudo = (fullName) => {
   let pseudo = fullName.replace(nameRegexp, (match, fullName) => Pseudonyms[fullName]);
 
@@ -21,8 +19,7 @@ let getPseudo = (fullName) => {
   }
   return fullName;
 };
-
-let chatListObserver = new MutationObserver((mutations) => {
+const chatListObserver = new MutationObserver((mutations) => {
   mutations.map((mutation) => {
     // console.log(mutation);
     let nodes = mutation.addedNodes;
@@ -51,15 +48,6 @@ chatListObserver.observe(document.getElementById("zhome"),
                            attributes: false,
                            characterData: false
                          });
-/* Zulip seems to be doing something really weird which is that it won't trigger
- * mutation events for `zfilt` and does some weird stuff narrowing and
- * unnarrowing streams */
-let filteredElement = document.getElementById('zfilt');
-let filteredSenderNames = filteredElement.getElementsByClassName('sender_name');
-
-for (let j = 0; j < filteredSenderNames.length; ++j) {
-  filteredSenderNames[j].innerHTML = getPseudo(filteredSenderNames[j].innerHTML);
-}
 
 const sidebarObserver = new MutationObserver(
   (mutations) =>
@@ -86,6 +74,16 @@ sidebarObserver.observe(document.getElementById("user_presences"),
                           subtree:       false,
                           characterData: false
                         });
+
+/* Zulip seems to be doing something really weird which is that it won't trigger
+ * mutation events for `zfilt` and does some weird stuff narrowing and
+ * unnarrowing streams */
+// let filteredElement = document.getElementById('zfilt');
+// let filteredSenderNames = filteredElement.getElementsByClassName('sender_name');
+
+// for (let j = 0; j < filteredSenderNames.length; ++j) {
+//   filteredSenderNames[j].innerHTML = getPseudo(filteredSenderNames[j].innerHTML);
+// }
 
 // This is to get the json data from pseudo.recurse.com (Thanks Sher Minn)
 // var pseudo = document.getElementsByClassName('pseudonym');
