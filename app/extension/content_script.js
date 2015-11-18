@@ -64,7 +64,6 @@ const sidebarObserver = new MutationObserver(
         if (className && className.indexOf('user_sidebar_entry') !== -1) {
           let userName = item.querySelector('a');
 
-          bigArrayOfAllNames.push(userName);
           userName.innerHTML = getPseudo(userName.innerHTML);
         }
       }
