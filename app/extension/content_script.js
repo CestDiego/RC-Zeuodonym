@@ -3,9 +3,13 @@ import Pseudonyms from './data';
 
 import _ from 'lodash';
 
+let active = true;
 const nameRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).join('|') + ')\\b', 'g');
-const pseudoRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).map((name) =>
-                                                                 Pseudonyms[name]).join('|') + ')\\b', 'g');
+const pseudoRegexp = RegExp('\\b(' +
+                            Object.keys(Pseudonyms).map((name) =>
+                                                        Pseudonyms[name]).join('|') +
+                            ')\\b', 'g');
+let bigArrayOfAllNames = [];
 let getRealName = (pseudo) => pseudo.replace(
   pseudoRegexp,
   (match, pseudonym) => _.filter(Object.keys(Pseudonyms),
@@ -19,35 +23,34 @@ let getPseudo = (fullName) => {
   }
   return fullName;
 };
-const chatListObserver = new MutationObserver((mutations) => {
-  mutations.map((mutation) => {
-    // console.log(mutation);
-    let nodes = mutation.addedNodes;
 
-    for (let i = 0; i < nodes.length; ++i) {
-      let item = nodes[i];
-      let id = item.id;
+let getListObserver = () =>
+  new MutationObserver((mutations) => {
+    mutations.map((mutation) => {
+      // console.log(mutation);
+      let nodes = mutation.addedNodes;
 
-      if (id && id.indexOf('message_group') !== -1) {
-        let nameElements = item.getElementsByClassName('sender_name');
-        let messageLabel = item.querySelector('.message_label_clickable');
+      for (let i = 0; i < nodes.length; ++i) {
+        let item = nodes[i];
+        let id = item.id;
 
-        for (let j = 0; j < nameElements.length; ++j) {
-          nameElements[j].innerHTML = getPseudo(nameElements[j].innerHTML);
+        if (id && id.indexOf('message_group') !== -1) {
+          let nameElements = item.getElementsByClassName('sender_name');
+          let messageLabel = item.querySelector('.message_label_clickable');
+
+          for (let j = 0; j < nameElements.length; ++j) {
+            bigArrayOfAllNames.push(nameElements[j]);
+            nameElements[j].innerHTML = getPseudo(nameElements[j].innerHTML);
+          }
+          bigArrayOfAllNames.push(messageLabel);
+          messageLabel.innerHTML = getPseudo(messageLabel.innerHTML);
         }
-        messageLabel.innerHTML = getPseudo(messageLabel.innerHTML);
       }
-    }
+    });
   });
-});
 
-chatListObserver.observe(document.getElementById("zhome"),
-                         {
-                           childList: true,
-                           subtree: false,
-                           attributes: false,
-                           characterData: false
-                         });
+let chatListObserver = getListObserver();
+let privateListObserver = getListObserver();
 
 const sidebarObserver = new MutationObserver(
   (mutations) =>
@@ -61,19 +64,65 @@ const sidebarObserver = new MutationObserver(
         if (className && className.indexOf('user_sidebar_entry') !== -1) {
           let userName = item.querySelector('a');
 
+          bigArrayOfAllNames.push(userName);
           userName.innerHTML = getPseudo(userName.innerHTML);
         }
       }
     })
 );
 
-sidebarObserver.observe(document.getElementById("user_presences"),
-                        {
-                          attributes:    false,
-                          childList:     true,
-                          subtree:       false,
-                          characterData: false
-                        });
+let restorePseudo = () =>
+      bigArrayOfAllNames.map((elem) =>
+                             elem.innerHTML = getPseudo(elem.innerHTML));
+let restoreNamesToNormal = () =>
+      bigArrayOfAllNames.map((elem) =>
+                             elem.innerHTML = getRealName(elem.innerHTML));
+let turnOnPseudonyms = () => {
+  const listConfig = {
+    childList: true,
+    subtree: false,
+    attributes: false,
+    characterData: false
+  };
+  const sidebarConfig = {
+    attributes:    false,
+    childList:     true,
+    subtree:       false,
+    characterData: false
+  };
+
+  if (bigArrayOfAllNames > 0)
+    restorePseudo();
+
+  privateListObserver.observe(document.getElementById("zfilt"), listConfig);
+  chatListObserver.observe(document.getElementById("zhome"), listConfig);
+  sidebarObserver.observe(document.getElementById("user_presences"), sidebarConfig);
+};
+
+let disconnectObservers = () => {
+  chatListObserver.disconnect();
+  privateListObserver.disconnect();
+  sidebarObserver.disconnect();
+};
+
+let turnOffPseudonyms = () => {
+  disconnectObservers();
+  restoreNamesToNormal();
+};
+
+let togglePsudonyms = () => active ? turnOffPseudonyms() : turnOnPseudonyms();
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === "whatsup")
+    sendResponse({ action: "status", content: active});
+  else if (msg.action === "toggle") {
+    togglePsudonyms();
+    active = !active;
+    sendResponse({ action: "status", content: active});
+  };
+});
+
+turnOnPseudonyms();
 
 /* Zulip seems to be doing something really weird which is that it won't trigger
  * mutation events for `zfilt` and does some weird stuff narrowing and

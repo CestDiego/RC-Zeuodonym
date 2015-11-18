@@ -6,7 +6,8 @@ module.exports = [
     name: 'extension',
 
     entry: {
-      content_script: ['./app/extension/content_script.js']
+      content_script: ['./app/extension/content_script.js'],
+      popup: ['./app/extension/popup.js']
     },
 
     output: {
