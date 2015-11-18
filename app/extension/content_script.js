@@ -6,8 +6,8 @@ import _ from 'lodash';
 let active = true;
 const nameRegexp = RegExp('\\b(' + Object.keys(Pseudonyms).join('|') + ')\\b', 'g');
 const pseudoRegexp = RegExp('\\b(' +
-                            Object.keys(Pseudonyms).map((name) =>
-                                                        Pseudonyms[name]).join('|') +
+                            _.map(Object.keys(Pseudonyms), (name) =>
+                                  Pseudonyms[name]).join('|') +
                             ')\\b', 'g');
 let bigArrayOfAllNames = [];
 let getRealName = (pseudo) => pseudo.replace(
@@ -54,7 +54,7 @@ let privateListObserver = getListObserver();
 
 const sidebarObserver = new MutationObserver(
   (mutations) =>
-    mutations.map((mutation) => {
+    _.map(mutations, (mutation) => {
       let nodes = mutation.addedNodes;
 
       for (let i = 0; i < nodes.length; ++i) {
@@ -72,11 +72,11 @@ const sidebarObserver = new MutationObserver(
 );
 
 let restorePseudo = () =>
-      bigArrayOfAllNames.map((elem) =>
-                             elem.innerHTML = getPseudo(elem.innerHTML));
+      _.map(bigArrayOfAllNames, (elem) =>
+            elem.innerHTML = getPseudo(elem.innerHTML));
 let restoreNamesToNormal = () =>
-      bigArrayOfAllNames.map((elem) =>
-                             elem.innerHTML = getRealName(elem.innerHTML));
+      _.map(bigArrayOfAllNames, (elem) =>
+            elem.innerHTML = getRealName(elem.innerHTML));
 let turnOnPseudonyms = () => {
   const listConfig = {
     childList: true,
